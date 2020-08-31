@@ -23,7 +23,7 @@
 #define SENS_500dps     0.0175f
 #define SENS_2000dps    0.07f
 
-
+// Handle for I2C interface
 typedef int I2C_fd_t;
 
 typedef enum
@@ -105,7 +105,7 @@ I2C_fd_t gyInitGyro(void);
 float gyLerp(float min, float max, float amount);
 
 void gyGetGyroReadings(Rotation* rot, I2C_fd_t fd);
-void gyGetAverageReding(Rotation* buff, uint8_t size, Rotation* result, I2C_fd_t gyroHandle);
+void gyGetAverageReding(Rotation* buff, unsigned size, Rotation* result, I2C_fd_t gyroHandle);
 void gyGetGyroDPS(Rotation* rot);
 void gyComputeFinalRotation(Rotation* rot, Rotation* gyroRead, float deltaTime);
 

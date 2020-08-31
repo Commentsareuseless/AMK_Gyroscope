@@ -1,4 +1,4 @@
-#include "../headers/gyroLib.h"
+#include "gyroLib.h"
 #include <stdlib.h>
 
 I2C_fd_t gyInitGyro()
@@ -61,7 +61,7 @@ float gyLerp(float min, float max, float amount)
     return min + (max - min) * amount;
 }
 
-void gyGetAverageReding(Rotation* buff, uint8_t size, Rotation* result, I2C_fd_t gyroHandle)
+void gyGetAverageReding(Rotation* buff, unsigned size, Rotation* result, I2C_fd_t gyroHandle)
 {
     // *result = (Rotation){0};
     //Read a few redings to get more accurate average :)

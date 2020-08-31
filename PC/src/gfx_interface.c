@@ -1,6 +1,8 @@
 #include "../headers/gfx_interface.h"
 #include "raymath.h"
-
+#include <malloc.h>
+#include <string.h>
+#include <stdlib.h>
 
 void gyDrawModel(Vector3 rotation, Camera3D* camera, Model* model)
 {
@@ -35,4 +37,16 @@ void gyInitViewPort(int screenWidth, int screenHeight, int cameraZoom, Camera3D*
     InitWindow(screenWidth, screenHeight, "Krecenie kostka");
     SetTargetFPS(60);
 
+}
+
+void gyArray2Rotation(char* array, unsigned size, Rotation* out_rot_buff)
+{
+    char *tmp_buff = (char*)malloc(size);
+    memcpy(tmp_buff, array, size);
+
+    out_rot_buff->roll = atoi(strtok(tmp_buff, '-'));
+    out_rot_buff->pitch = atoi(strtok(tmp_buff, '-'));
+    out_rot_buff->yaw = atoi(strtok(tmp_buff, '-'));
+
+    free(tmp_buff);
 }
