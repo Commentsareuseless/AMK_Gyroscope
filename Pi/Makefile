@@ -1,7 +1,7 @@
 #Makefile by Maciek :)
 
 CC=gcc
-linkerArgs=- -lm -lwiringPi #-lGL -L/opt/vc/lib/ -lbcm_host -lvcos -lvchiq_arm -lpthread
+linkerArgs= -lm -lwiringPi #-lGL -L/opt/vc/lib/ -lbcm_host -lvcos -lvchiq_arm -lpthread
 
 objects=main.o gyroLib.o client.o
 

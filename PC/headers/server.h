@@ -2,8 +2,8 @@
  *  Impementation of comunication interface using UDP
  */
 
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
 #include <stdint.h>
 #include <sys/socket.h>
@@ -17,17 +17,16 @@
 typedef int sockHandle_t;
 
 // Port number
-#define PORT 6969
+#define PORT 55559
 // Client (PI) address
-#define PI_ADDR "192.168.43.40"
+#define SRV_ADDR "192.168.1.2"
 
-#define TRx_BUFF_SIZE 16
+#define TRx_BUFF_SIZE 32
 // Max ammount of retransmissions
 #define MAX_RETRY 10
 // Return no errors
 #define SRV_OK 0
-// Cannot get answer from client
-#define CONN_LOST -1
+
 
 /*
  *  @brief Init socket and address struct
@@ -35,12 +34,6 @@ typedef int sockHandle_t;
  *  @retval Returns SRV_OK if succeed, standard errno if failed
  */
 int gyInitComunication();
-
-/*
- *  @brief Listen for client's data in blocking mode 
- *         Writes internal buffor if received data, use gyGetClientData() to access it
- */
-int gyListenForClient();
 
 /*
  *  @brief TESTING
@@ -57,15 +50,20 @@ int gyListenForClient();
 int gyGetClientData(char* buff, unsigned size);
 
 /*
- *  @brief Function implementing parellel server thread
- *         which waits for client data and writes it to supplied
+ *  @brief Function implementing parellel thread
+ *         which waits for server data and writes it to supplied
  *         buffor
- *  @param arg - must be pointer to array of min size 9B,
+ *  @param arg - must be pointer to array of min size 32B,
  *               Use gyGetClientData() to acces data
  *
  *  @retval NULL
  *  ------------DO NOT CALL IN MAIN THREAD-----------------
  */
-void* gyServerThread(void* arg);
+void* gyReceiveData(void* arg);
+
+/*
+ *  @brief Close socket after communication
+ */
+void gyCleanup();
 
 #endif

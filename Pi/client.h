@@ -18,9 +18,9 @@
 typedef int sockHandle_t;
 
 // Port number
-#define PORT 6969
+#define PORT 55559
 // Server (PC) address
-#define PC_ADDR "192.168.43.40"
+#define SRV_ADDR "192.168.1.2"
 // Return no errors
 #define CLIENT_OK 0
 // General transmission buffers size
@@ -43,7 +43,16 @@ int gyInitComunication();
  */
 int gyWaitForDataReq();
 
-
+/*
+ *  @brief Sends data via earlier aquaierd socket
+ *
+ *  @retval Returns SRV_OK if succeed, standard errno if failed
+ */
 int gySendData(const char* buff, unsigned size);
+
+/*
+ *  @brief Close socket after communication
+ */
+void gyCleanup();
 
 #endif

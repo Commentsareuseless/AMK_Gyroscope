@@ -2,8 +2,7 @@
 #include "gyroLib.h"
 
 #define GYRO_BUFF 5
-// Max packets num without keepAlive check
-#define MAX_PACK_WO_KA 10
+
 
 int main(void)
 {
@@ -12,34 +11,37 @@ int main(void)
     Rotation gyroRotation = {0};
     Rotation finalRotation = {0};
 
-    char* sendBuff[BUFF_SIZE];
-    int errCheck = 0;
-    // Count of packets sent without keepAlive check
-    unsigned packsWoKaCheck = MAX_PACK_WO_KA;
+    char sendBuff[BUFF_SIZE];
+    int errorNum = 0;
 
-    if((errCheck = gyInitComunication()) < 0)
+    if((errorNum = gyInitComunication()) < 0)
     {
+        printf("Sth went wrong :(\n Error: %s", strerror(errorNum));
+        exit(EXIT_FAILURE);
+    }
+
+    if((errorNum = gyWaitForDataReq()) != 0)
+    {
+        printf("Waiting for PC\n Error: %s", strerror(errorNum));
         exit(EXIT_FAILURE);
     }
 
     gyroHandle = gyInitGyro();
-
+    printf("######## Succesfull intialization #########\n"
+           "######## Readnig data #####################\n");
     while (1)
     {
-        if (packsWoKaCheck == MAX_PACK_WO_KA) {
-            gyWaitForDataReq();
-            packsWoKaCheck = 0;
-        }
-        ++packsWoKaCheck;
-
-        gyGetAverageReding(rotBuff, GYRO_BUFF, gyroRotation, gyroHandle);
+        gyGetAverageReding(rotBuff, GYRO_BUFF, &gyroRotation, gyroHandle);
         gyGetGyroDPS(&gyroRotation);
         gyComputeFinalRotation(&finalRotation, &gyroRotation, 0.375f);
 
-        sprintf(sendBuff, "%d-%d-%d", gyroRotation.roll, gyroRotation.pitch, gyroRotation.yaw);
+        sprintf(sendBuff, "%dx%dx%d", finalRotation.roll, finalRotation.pitch, finalRotation.yaw);
         printf("\n %s \n", sendBuff);
 
         gySendData(sendBuff, sizeof(sendBuff));
+
+        // Reset finalRotation so it won't be ovarriden incorrectly
+        memset(&finalRotation, 0, sizeof(finalRotation));
     }
 
 }

@@ -36,17 +36,27 @@ void gyInitViewPort(int screenWidth, int screenHeight, int cameraZoom, Camera3D*
 
     InitWindow(screenWidth, screenHeight, "Krecenie kostka");
     SetTargetFPS(60);
-
 }
 
 void gyArray2Rotation(char* array, unsigned size, Rotation* out_rot_buff)
 {
     char *tmp_buff = (char*)malloc(size);
     memcpy(tmp_buff, array, size);
+    char* tokens[3];
 
-    out_rot_buff->roll = atoi(strtok(tmp_buff, '-'));
-    out_rot_buff->pitch = atoi(strtok(tmp_buff, '-'));
-    out_rot_buff->yaw = atoi(strtok(tmp_buff, '-'));
+    tokens[0] = strtok(tmp_buff, "x");
+    tokens[1] = strtok(NULL, "x");
+    tokens[2] = strtok(NULL, "x");
+
+    // We don't need to check first string bcs strtok(NULL, <del>)
+    // returns NULL when there is no more tokens to split, that means
+    // first call never returns NULL
+    if (tokens[1] == NULL || tokens[2] == NULL)
+        return;
+
+    out_rot_buff->yaw = atoi(tokens[0]);
+    out_rot_buff->roll = atoi(tokens[1]);
+    out_rot_buff->pitch = atoi(tokens[2]);
 
     free(tmp_buff);
 }

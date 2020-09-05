@@ -11,6 +11,13 @@ typedef struct
     int16_t yaw;
 } Rotation;
 
+// Higher precision is needed for calculating rotation per frame
+typedef struct
+{
+    float roll;
+    float pitch;
+    float yaw;
+} Rotation_f;
 /*
  *  @brief Draws model loaded earlier, another func to keep everythin clin xD
  */

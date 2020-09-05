@@ -2,72 +2,75 @@
 #include <sys/time.h>
 #include <errno.h>
 
-static struct sockaddr_in PCaddress;
-static sockHandle_t sockFD;
+static struct sockaddr_in SrvAddress, CliAddress;
+static sockHandle_t connectFD;
 static struct timeval timeout;
 
 int gyInitComunication()
 {
     int errCheck;
-    timeout.tv_sec = 1;
+    socklen_t cli_addr_len = 0;
+    timeout.tv_sec = 2;
     timeout.tv_usec = 0;
 
-    if((sockFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    if((connectFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
         printf("\nCannot aquire socket :(\n");
         return -1;
     }
 
     // Set timeout on socket for retransmission
-    if((setsockopt(sockFD, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout))) < 0)
+    if((setsockopt(connectFD, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout))) < 0)
     {
         perror("\nFailed to set timeout on socket :(\n");
     }
 
-    memset(&PCaddress, 0, sizeof(PCaddress));
-    PCaddress.sin_family = AF_INET;
-    PCaddress.sin_port = htons(PORT);
-    
-    if((errCheck = inet_pton(AF_INET, PC_ADDR, &PCaddress.sin_addr.s_addr)) < 1)
+    memset(&SrvAddress, 0, sizeof(SrvAddress));
+    SrvAddress.sin_family = AF_INET;
+    SrvAddress.sin_port = htons(PORT);
+
+    if(inet_pton(AF_INET, SRV_ADDR, &SrvAddress.sin_addr) < 1)
     {
         printf("\nError converting addresses\n");
-        close(sockFD);
+        close(connectFD);
         return -1;
     }
 
+    if(bind(connectFD, (struct sockaddr*)&SrvAddress, sizeof(SrvAddress)) < 0)
+    {
+        perror("Binding failed: ");
+        close(connectFD);
+        return -ENOTCONN;
+    }
+
+
     printf("\nSuccesful initialization!\n");
+    printf("Connected to: %s on port: %d\n", inet_ntoa(SrvAddress.sin_addr), SrvAddress.sin_port);
     return CLIENT_OK;
 }
 
 int gyWaitForDataReq()
 {
-    const char probeMessage[] = "RDY";
     const char probeRequest[] = "REQ";
     const char buff[BUFF_SIZE];
-    socklen_t addr_struct_len = sizeof(PCaddress);
+    socklen_t addr_struct_len = sizeof(CliAddress);
     ssize_t bytes_recvd = 0;
     int max_attempts = 0;
 
     while (strcmp(buff, probeRequest) != 0)
-    {        
+    {
         // Repeat requests untill we get answer
-        sendto(sockFD,
-                (void*)probeMessage,
-                sizeof(probeMessage),
-                MSG_CONFIRM,
-                (struct sockaddr*)&PCaddress,
-                addr_struct_len);
-        bytes_recvd = recvfrom(sockFD,
+        bytes_recvd = recvfrom(connectFD,
                                 (void*)buff,
                                 sizeof(buff),
                                 MSG_WAITALL,
-                                (struct sockaddr*)&PCaddress,
+                                (struct sockaddr*)&CliAddress,
                                 &addr_struct_len);
         if (bytes_recvd > 0)
             printf("Received: %d %s\n", bytes_recvd, buff);
 
         ++max_attempts;
-        if (max_attempts => MAX_RETRYS)
+        if (max_attempts >= MAX_RETRYS)
             return -ENOTCONN;
     }
     return CLIENT_OK;
@@ -75,11 +78,18 @@ int gyWaitForDataReq()
 
 int gySendData(const char* buff, unsigned size)
 {
-    socklen_t addr_struct_len = sizeof(PCaddress);
-    sendto(sockFD,
-            (void*)buff,
-            size,
-            MSG_CONFIRM,
-            (struct sockaddr*)&PCaddress,
-            addr_struct_len);
+    int numB = 0;
+    numB = sendto(connectFD,
+                    (void*)buff,
+                    size,
+                    0,
+                    (struct sockaddr*)&CliAddress,
+                    sizeof(CliAddress));
+    printf("Data sent %s , %d\n", buff, numB);
+    return CLIENT_OK;
+}
+
+void gyCleanup()
+{
+    close(connectFD);
 }
